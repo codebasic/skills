@@ -15,54 +15,45 @@ Anthropic의 [Agent Skills 오픈 규격](https://agentskills.io) 및 Claude Cod
 
 ---
 
-## 🚀 에이전트 환경 연동 가이드
+## 🚀 에이전트 환경 연동 가이드 (Agent Skills Sync)
 
-이 저장소의 스킬들은 개별 디렉터리 단위로 독립 동작하도록 설계되어 있습니다. 사용 중인 AI 코딩 에이전트에 맞게 연결하여 즉시 사용할 수 있습니다.
+이 저장소의 스킬들은 **Agent Skills 오픈 규격**을 준수하므로, 주요 AI 코딩 에이전트(**Claude Code, Google Antigravity, GitHub Copilot, OpenCode**)에서 공통으로 사용할 수 있습니다.
 
-### 1. Claude Code (`.claude/skills`)
+### ⚡ 원클릭 자동 등록 스크립트 (권장)
 
-Claude Code 환경에서는 사용자 홈 디렉터리(`~/.claude/skills`) 또는 프로젝트 루트의 `.claude/skills`에 심볼릭 링크를 생성합니다:
-
-```bash
-# 전체 스킬을 Claude Code 글로벌 스킬로 등록
-mkdir -p ~/.claude/skills
-ln -s "$(pwd)/keras" ~/.claude/skills/keras
-ln -s "$(pwd)/pydeep" ~/.claude/skills/pydeep
-ln -s "$(pwd)/timeseries" ~/.claude/skills/timeseries
-
-# 또는 특정 프로젝트에만 등록
-cd /path/to/my-project
-mkdir -p .claude/skills
-ln -s /path/to/codebasic-skills/keras .claude/skills/keras
-```
-
-### 2. Google Antigravity (`.agents/skills`)
-
-Antigravity 환경에서는 워크스페이스 루트의 `.agents/skills`에 배치하거나 글로벌 설정에 마운트합니다:
+시스템에 설치된 에이전트들을 자동으로 감지하고 심볼릭 링크 및 설정을 일괄 구성하는 [scripts/register-skills.sh](./scripts/register-skills.sh) 스크립트를 제공합니다:
 
 ```bash
-# 워크스페이스 로컬 스킬로 등록
-cd /path/to/my-project
-mkdir -p .agents/skills
-ln -s /path/to/codebasic-skills/keras .agents/skills/keras
-ln -s /path/to/codebasic-skills/timeseries .agents/skills/timeseries
+# 1. 시스템에 설치된 모든 에이전트에 스킬 자동 등록 (글로벌)
+./scripts/register-skills.sh
 
-# 방법 A: ~/.gemini/config/skills.json에 ~/.agents/skills 경로 등록 (권장)
-# (이미 ~/.agents/skills에 심볼릭 링크되어 있는 경우 자동으로 모든 스킬 탐색)
-cat << 'EOF' > ~/.gemini/config/skills.json
-{
-  "entries": [
-    {
-      "path": "~/.agents/skills"
-    }
-  ]
-}
-EOF
+# 2. 각 에이전트별 등록 상태 확인
+./scripts/register-skills.sh --status
 
-# 방법 B: 개별 스킬을 직접 Antigravity 글로벌 스킬로 링크
-mkdir -p ~/.gemini/config/skills
-ln -s "$(pwd)/keras" ~/.gemini/config/skills/keras
+# 3. 특정 프로젝트 워크스페이스에 스킬 동기화
+./scripts/register-skills.sh --project /path/to/my-project
+
+# 4. 등록된 심볼릭 링크 제거
+./scripts/register-skills.sh --uninstall
 ```
+
+#### 스크립트가 자동 감지 및 구성하는 에이전트:
+* **Agent Skills Hub**: `~/.agents/skills` (오픈 표준 공통 허브)
+* **Claude Code**: `~/.claude/skills`
+* **Google Antigravity (`agy`)**: `~/.gemini/config/skills.json` (전역 스캔 등록) 및 `~/.gemini/config/skills`
+* **GitHub Copilot**: `~/.copilot/skills`
+* **OpenCode**: `~/.config/opencode/skills`
+
+---
+
+### 🛠️ 에이전트별 표준 스킬 경로 (수동 등록 시)
+
+| 에이전트 | 글로벌 등록 위치 | 프로젝트 로컬 등록 위치 |
+| :--- | :--- | :--- |
+| **Claude Code** | `~/.claude/skills/<skill>` | `<project>/.claude/skills/<skill>` |
+| **Google Antigravity** | `~/.gemini/config/skills.json` 등록 | `<project>/.agents/skills/<skill>` |
+| **GitHub Copilot** | `~/.copilot/skills/<skill>` | `<project>/.github/skills/<skill>` |
+| **OpenCode** | `~/.config/opencode/skills/<skill>` | `<project>/.opencode/skills/<skill>` |
 
 ---
 
@@ -74,6 +65,8 @@ ln -s "$(pwd)/keras" ~/.gemini/config/skills/keras
 codebasic-skills/
 ├── README.md               # 저장소 개요 및 연동 가이드
 ├── .gitignore              # 파이썬 캐시, 체크포인트, OS 메타데이터 제외
+├── scripts/
+│   └── register-skills.sh  # [자동화] 시스템 에이전트 자동 탐색 및 스킬 동기화 스크립트
 ├── keras/
 │   ├── SKILL.md            # [핵심] Keras 3 워크스페이스 컨벤션 및 퀵 가이드
 │   ├── references/         # [참조] 설치, 세부 모델 구축, 훈련 가이드

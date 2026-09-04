@@ -27,16 +27,33 @@ user-invocable: true
 
 ## Procedure
 
-### 1. conda 초기화 및 환경 활성화
+### 0. Pre-flight Check (현재 환경 빠른 진단)
 
-터미널에서 conda를 사용하려면 먼저 conda를 초기화해야 합니다 (셸 세션마다 필요할 수 있음):
+터미널에서 5초 내에 현재 파이썬 환경과 딥러닝 프레임워크 가용성을 점검합니다:
 
 ```bash
-source /home/me/miniforge3/etc/profile.d/conda.sh
+python -c "import sys; print(f'Python: {sys.version.split()[0]}'); \
+import torch; print(f'PyTorch: {torch.__version__} (CUDA: {torch.cuda.is_available()}, MPS: {getattr(torch.backends, \"mps\", None) and torch.backends.mps.is_available()})'); \
+try: import keras; print(f'Keras: {keras.__version__} (Backend: {keras.backend.backend()})')
+except ImportError: print('Keras: Not installed'); \
+try: import tensorflow as tf; print(f'TensorFlow: {tf.__version__}')
+except ImportError: print('TensorFlow: Not installed')"
+```
+
+### 1. conda 초기화 및 환경 활성화
+
+셸 세션에서 `conda activate`가 작동하지 않을 때는 conda 프로필 스크립트를 로드합니다:
+
+```bash
+# 동적 경로 탐색 (권장)
+CONDA_BASE=$(conda info --base 2>/dev/null || echo "${CONDA_PREFIX:-$HOME/miniforge3}")
+source "$CONDA_BASE/etc/profile.d/conda.sh"
+
+# 환경 활성화
 conda activate pytorch
 ```
 
-> 💡 매번 `source`를 입력하지 않으려면 `~/.bashrc`에 위 `source` 줄을 추가하세요.
+> 💡 매번 `source`를 입력하지 않으려면 셸 설정 파일(`~/.bashrc` 또는 `~/.zshrc`)에 conda init 블록을 추가하세요.
 
 ### 2. 환경 목록 확인
 
@@ -56,8 +73,9 @@ python -c "import keras; print(keras.__version__, keras.backend.backend())"
 **PyTorch - `pytorch` 환경:**
 ```bash
 conda activate pytorch
-python -c "import torch; print(torch.__version__, torch.cuda.is_available())"
-# 예: 2.8.0+cu128 True
+python -c "import torch; print(torch.__version__, 'CUDA:', torch.cuda.is_available(), 'MPS:', getattr(torch.backends, 'mps', None) and torch.backends.mps.is_available())"
+# Linux 예: 2.8.0+cu128 CUDA: True MPS: False
+# macOS 예: 2.8.0 CUDA: False MPS: True
 ```
 
 **TensorFlow - `tensorflow` 환경:**
@@ -91,4 +109,14 @@ import keras
 
 - `base` 환경에는 딥러닝 프레임워크가 설치되어 있지 않습니다. 반드시 `pytorch` 또는 `tensorflow` 환경을 사용하세요.
 - Keras 백엔드는 import 전에 설정해야 하며, 이후 변경 불가
-- GPU(CUDA)는 `pytorch` 환경에서 사용 가능 (`torch.cuda.is_available()` → `True`)
+- 하드웨어 가속: Linux에서는 CUDA(`torch.cuda.is_available()`), macOS(Apple Silicon)에서는 MPS(`torch.backends.mps.is_available()`)를 확인하세요.
+
+## Evals (발동 검증 질문)
+
+- **Positive Triggers (이 스킬이 활성화되어야 함)**:
+  - "conda 환경을 pytorch로 변경해줘"
+  - "이 머신에 텐서플로우와 파이토치 어떤 버전이 설치되어 있는지 확인해줘"
+  - "터미널에서 conda activate pytorch 명령어가 안 먹히는데 어떻게 초기화하지?"
+- **Negative Triggers (이 스킬이 활성화되지 않아야 함)**:
+  - "Keras 3로 이미지 분류 Sequential 모델 작성해줘" ➔ `keras` 스킬 사용
+  - "시계열 데이터 슬라이딩 윈도우 생성해줘" ➔ `timeseries` 스킬 사용

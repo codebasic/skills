@@ -105,7 +105,8 @@ PyTorch 백엔드에서는 모델에 `torch.Tensor`를 직접 입력할 수 있�
 ```python
 import torch
 
-dummy = torch.randn(1, 1, 28, 28)
+# Keras 3 기본 채널-마지막(HWC) 포맷: (batch, height, width, channels)
+dummy = torch.randn(1, 28, 28, 1)
 output = model(dummy)
 print(f'Input shape: {tuple(dummy.shape)}')
 print(f'Output shape: {tuple(output.shape)}')

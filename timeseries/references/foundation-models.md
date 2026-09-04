@@ -197,7 +197,7 @@ def serialize_transaction_event(row, src_node, dest_node):
 
 1. **바인드 마운트 버스 에러 (SIGBUS / Bus Error 방지)**:
    - Windows 호스트와 공유되는 바인드 마운트 볼륨(`/workspace`) 위에 venv를 생성하고 `import torch`를 수행하면 가상 메모리 매핑 불일치로 버스 에러가 발생할 수 있습니다.
-   - **원칙**: 모든 독립 venv(MOMENT용, cgm-gm용 등)는 **반드시 컨테이너 로컬 파일시스템(`/home/me/venvs/`)**에 `uv venv`로 생성하십시오.
+   - **원칙**: 모든 독립 venv(MOMENT용, cgm-gm용 등)는 **반드시 로컬 파일시스템(`~/venvs/` 또는 `/tmp`)**에 `uv venv`로 생성하십시오.
 2. **패키지 버전 충돌 격리**:
    - `granite-tsfm`은 `transformers==4.56.x`를 요구하고, 최신 LLM 도구는 `transformers>=4.57`을 요구합니다.
    - 워크스페이스 표준인 `conda pytorch` 환경을 오염시키지 말고, 특수 모델(MOMENT, 지진 CGM-GM 등)은 전용 로컬 venv의 파이썬 인터프리터(`~/venvs/moment/bin/python`)로 격리 실행하십시오.

@@ -22,6 +22,18 @@ Jena 기후 예측 실습, HAR 3축 센서 활동인식, AML 불균형 거래 �
 - 불균형 이벤트/트랜잭션 시계열을 자연어 텍스트 문맥으로 직렬화(Prompting)하여 사전훈련 LM을 활용할 때
 - WSL / 바인드 마운트 컨테이너 환경에서 PyTorch 버스 에러를 방지하고 가상환경을 격리할 때
 
+## 사전 진단 (Pre-flight Check)
+
+시계열 작업 전 핵심 패키지와 가속기 환경을 점검합니다:
+
+```bash
+python -c "import pandas, sklearn, torch; print('PyTorch:', torch.__version__, 'CUDA:', torch.cuda.is_available(), 'MPS:', getattr(torch.backends, 'mps', None) and torch.backends.mps.is_available()); \
+try: import keras; print('Keras:', keras.__version__, 'Backend:', keras.backend.backend())
+except ImportError: print('Keras: Not installed'); \
+try: import transformers; print('Transformers:', transformers.__version__)
+except ImportError: print('Transformers: Not installed')"
+```
+
 ## 참고 자료
 
 | 파일 | 내용 |
@@ -30,7 +42,7 @@ Jena 기후 예측 실습, HAR 3축 센서 활동인식, AML 불균형 거래 �
 | `references/sequence-datasets.md` | 슬라이딩 윈도우 시퀀스 생성 (제너레이터 주의점) |
 | `references/models.md` | 베이스라인, MLP/Conv1D/LSTM/TCN/Transformer 모델링, HAR 센서 벤치마크, Saliency 설명력, Seismic 주파수-시간 변환 |
 | `references/foundation-models.md` | TimesFM/TTM/MOMENT/LM 직렬화 가이드, 실측 비교, momentfm 결함 해결, venv 격리 모범 사례 |
-| `scripts/timeseries_forecasting.py` | 전체 파이프라인 참조 구현 (conda pytorch 환경) |
+| `scripts/timeseries_forecasting.py` | 전체 파이프라인 참조 구현 (CLI 인자 및 스모크 테스트 지원) |
 
 ## 핵심 교훈 (요약)
 
@@ -43,7 +55,7 @@ Jena 기후 예측 실습, HAR 3축 센서 활동인식, AML 불균형 거래 �
 7. **MOMENT-1-small 함정**: `momentfm 0.1.4`는 `from_pretrained(..., model_kwargs={"task_name": "embedding"})`로 생성해도 내부 `task_name`이 `reconstruction`으로 남아 `out.embeddings`가 None이 됨. 로드 직후 `model.task_name = "embedding"`을 명시적으로 재할당해야 함. 입력 텐서는 반드시 `(B, C, T)`로 permute 필요. 인스턴스 정규화로 인해 신호의 절대 진폭 정보가 지워지는 점 주의.
 8. **이벤트 시계열의 LM 직렬화(Serialization)**: 비정형 메타데이터(금액, 국가, 경과시간 등)가 결합된 불균형 거래 시계열(AML)에서는 이벤트 로그를 텍스트 시퀀스로 직렬화하여 사전훈련 언어 모델(ELECTRA)을 활용하는 것이 일반 테이블/시계열 트랜스포머보다 PR-AUC(0.428) 및 F1(0.436) 면에서 월등함.
 9. **시계열 설명력 (Saliency Map)**: Keras(torch 백엔드)에서는 `torch.autograd.grad`를 사용하여 입력 텐서 대비 그래디언트($\text{Input} \times \text{Gradient}$)를 즉시 추출 가능. imshow((채널, 시간)) 히트맵으로 시각화하여 결정적 시점과 채널 기여도를 해석.
-10. **환경 격리 및 버스 에러 방지**: Windows 바인드 마운트(`/workspace`)에서 venv를 구성하고 PyTorch를 로드하면 SIGBUS 버스 에러가 발생함. 독립 venv(MOMENT, CGM-GM 등)는 반드시 로컬 파일시스템(`/home/me/venvs/`)에 생성하고, 패키지 충돌 방지를 위해 태스크별로 분리 실행할 것.
+10. **환경 격리 및 버스 에러 방지**: Windows 바인드 마운트(`/workspace`)에서 venv를 구성하고 PyTorch를 로드하면 SIGBUS 버스 에러가 발생함. 독립 venv(MOMENT, CGM-GM 등)는 반드시 로컬 파일시스템(`~/venvs/` 또는 `/tmp`)에 생성하고, 패키지 충돌 방지를 위해 태스크별로 분리 실행할 것.
 
 ## 실측 벤치마크 요약
 
@@ -66,3 +78,15 @@ Jena 기후 예측 실습, HAR 3축 센서 활동인식, AML 불균형 거래 �
 - **MLP (테이블 특징)**: PR-AUC 0.4512 / Fraud F1 0.1906 (정밀도 불균형)
 - **FT-Transformer**: PR-AUC 0.1442 / Fraud F1 0.0106
 - **Baseline (무작위 추측)**: PR-AUC 0.0021
+
+## Evals (발동 검증 질문)
+
+- **Positive Triggers (이 스킬이 활성화되어야 함)**:
+  - "Jena 기후 데이터로 24시간 뒤 온도 예측 모델 만들어줘"
+  - "시계열 회귀에서 persistence 베이스라인 어떻게 계산해?"
+  - "HAR 센서 활동 분류에서 1D CNN과 트랜스포머 중 어떤 게 나아?"
+  - "TimesFM이나 MOMENT 파운데이션 모델 제로샷 예측 코드 작성해줘"
+  - "Keras PyTorch 백엔드로 시계열 Saliency 맵 시각화해줘"
+- **Negative Triggers (이 스킬이 활성화되지 않아야 함)**:
+  - "MNIST 이미지 분류 모델 작성해줘" ➔ `keras` 스킬 사용
+  - "conda 환경을 pytorch로 전환해줘" ➔ `pydeep` 스킬 사용

@@ -132,149 +132,71 @@ class ImageDataset(Dataset):
 
 ## Procedure
 
-### 0. conda 환경 활성화
+### 0. Pre-flight Check (환경 진단)
 
-이 워크스페이스에서는 시스템의 conda `pytorch` 환경을 사용합니다. 해당 환경에는 Keras 3.10.0과 PyTorch 2.8.0(CUDA 지원)이 이미 설치되어 있습니다.
+작업 전 Keras 3 버전과 PyTorch 백엔드 연결 상태를 5초 내에 확인합니다:
 
 ```bash
-conda activate pytorch
-```
-
-환경 확인:
-```bash
-python -c "import keras; print(keras.__version__, keras.backend.backend())"
-# 예: 3.10.0 torch
-python -c "import torch; print(torch.__version__, torch.cuda.is_available())"
-# 예: 2.8.0+cu128 True
+python -c "import os; os.environ['KERAS_BACKEND']='torch'; import keras, torch; \
+print(f'Keras: {keras.__version__} (Backend: {keras.backend.backend()})'); \
+print(f'PyTorch: {torch.__version__} (CUDA: {torch.cuda.is_available()}, MPS: {getattr(torch.backends, \"mps\", None) and torch.backends.mps.is_available()})')"
 ```
 
 ### 1. 백엔드 설정
 
-백엔드는 **Keras를 import 하기 전에** 설정해야 합니다. 세 가지 방법이 있습니다:
+백엔드는 **Keras를 import 하기 전에** 반드시 설정해야 합니다:
 
-**방법 A - 환경 변수 (권장):**
+**방법 A - 환경 변수 (터미널/권장):**
 ```bash
 export KERAS_BACKEND="torch"
 ```
 
-**방법 B - 코드 내 설정 (노트북/스크립트):**
+**방법 B - 코드 내 설정 (노트북/스크립트 상단):**
 ```python
 import os
 os.environ["KERAS_BACKEND"] = "torch"
 import keras
 ```
 
-**방법 C - 설정 파일** (`~/.keras/keras.json`):
-```json
-{
-    "backend": "torch"
-}
-```
+> ⚠️ Keras를 임포트한 이후에는 백엔드를 변경할 수 없습니다.
 
-> ⚠️ 백엔드는 Keras를 import 한 뒤에는 변경할 수 없습니다. 반드시 import 전에 설정하세요.
+### 2. 핵심 워크플로우 요약
 
-### 2. 설치
+상세 가이드와 아키텍처별 코드는 `references/` 문서를 참조하세요:
 
-```bash
-pip install --upgrade keras
-pip install torch torchvision   # PyTorch 백엔드
-```
+1. **모델 구축**: [model-building.md](./references/model-building.md)
+   - Sequential, Functional, 서브클래싱 3가지 방식 지원
+   - 모델 구축은 항상 `build_model()` 함수로 캡슐화
+2. **컴파일 & 손실 함수**: [training.md](./references/training.md)
+   - 출력층에 Softmax가 없으면 `from_logits=True` 지정
+3. **PyTorch DataLoader 연동**: [training.md](./references/training.md)
+   - `model.fit(train_loader, epochs=...)`로 직접 전달
+   - ⚠️ DataLoader 사용 시 `model.fit()`에 `batch_size`를 **절대 지정하지 않음**
+4. **평가 및 성능 비교**:
+   - `model.evaluate(dataloader, return_dict=True)` 결과를 `pd.DataFrame`으로 취합
 
-버전 확인:
-```python
-import keras
-print(keras.__version__)          # Keras 버전
-print(keras.backend.backend())    # 현재 백엔드 (예: 'torch')
-```
-
-### 3. 모델 구축
-
-Keras는 세 가지 모델 구축 방식을 제공합니다. 자세한 내용은 [model-building.md](./references/model-building.md) 참조.
-
-**Sequential API (간단한 순차 모델):**
-```python
-import keras
-from keras import layers
-
-model = keras.Sequential([
-    layers.Input(shape=(28, 28, 1)),
-    layers.Flatten(),
-    layers.Dense(512, activation='relu'),
-    layers.Dense(10),
-])
-model.summary()
-```
-
-### 4. 모델 컴파일
-
-```python
-model.compile(
-    optimizer=keras.optimizers.Adam(learning_rate=0.001),
-    loss=keras.losses.SparseCategoricalCrossentropy(from_logits=True),
-    metrics=['accuracy'],
-)
-```
-
-### 5. 모델 훈련
-
-```python
-history = model.fit(
-    x_train, y_train,
-    batch_size=64,
-    epochs=5,
-    validation_data=(x_test, y_test),
-    verbose=1,
-)
-```
-
-### 6. PyTorch DataLoader 활용
-
-Keras 3는 PyTorch 백엔드에서 `torch.utils.data.DataLoader`를 `model.fit()`에 **직접 전달**할 수 있습니다. 대용량 데이터셋, 커스텀 데이터셋, 증강 파이프라인에 유용합니다. 자세한 내용은 [training.md](./references/training.md) 참조.
-
-```python
-import torch
-from torch.utils.data import DataLoader
-from torchvision import datasets, transforms
-
-transform = transforms.Compose([
-    transforms.ToTensor(),
-    transforms.Normalize((0.1307,), (0.3081,)),
-])
-train_dataset = datasets.MNIST(root='./data', train=True, download=True, transform=transform)
-test_dataset = datasets.MNIST(root='./data', train=False, download=True, transform=transform)
-
-train_loader = DataLoader(train_dataset, batch_size=64, shuffle=True)
-test_loader = DataLoader(test_dataset, batch_size=64, shuffle=False)
-
-# DataLoader를 model.fit()에 직접 전달 (batch_size 지정하지 않음)
-history = model.fit(
-    train_loader,
-    epochs=5,
-    validation_data=test_loader,
-    verbose=1,
-)
-```
-
-> ⚠️ DataLoader를 사용할 때는 `model.fit()`에 `batch_size`를 **지정하지 마세요**. 배치 크기는 DataLoader에서 결정됩니다.
-
-### 7. 평가 및 예측
-
-```python
-test_loss, test_acc = model.evaluate(x_test, y_test)
-predictions = model.predict(x_test)
-```
+완전한 실행 예제는 [scripts/mnist_classification.py](./scripts/mnist_classification.py)를 참조하세요.
 
 ## 참고 자료
 
 - [설치 및 백엔드 설정](./references/installation.md)
 - [모델 구축 (Sequential/Functional/서브클래싱)](./references/model-building.md)
 - [컴파일, 훈련, 평가, PyTorch DataLoader](./references/training.md)
-- [MNIST 분류 예제 스크립트](./scripts/mnist_classification.py)
+- [MNIST 분류 참조 구현 스크립트](./scripts/mnist_classification.py)
 
 ## 주의사항
 
-- 백엔드는 import 전에 설정해야 하며, 이후 변경 불가
-- PyTorch 백엔드에서 모델 출력은 `torch.Tensor` 타입
-- `from_logits=True`는 출력층에 활성화 함수(softmax)가 없을 때 사용
-- MNIST 데이터는 `keras.datasets.mnist.load_data()`로 로드 가능
-- torchvision `datasets.MNIST`는 `(1, 28, 28)` 채널-우선(CHW) 형태, `keras.datasets.mnist`는 `(28, 28, 1)` 채널-마지막(HWC) 형태 — 모델 `input_shape`을 이에 맞춰야 함
+- PyTorch 백엔드에서 모델 출력 및 내부 연산은 `torch.Tensor` 타입입니다.
+- torchvision `datasets.MNIST`는 `(1, 28, 28)` 채널-우선(CHW) 형태, Keras 기본 입력은 `(28, 28, 1)` 채널-마지막(HWC) 형태이므로 `transforms.Lambda(lambda x: x.permute(1, 2, 0))` 등으로 형태를 일치시켜야 합니다.
+
+## Evals (발동 검증 질문)
+
+- **Positive Triggers (이 스킬이 활성화되어야 함)**:
+  - "Keras 3에서 PyTorch 백엔드로 Sequential 모델 만들고 컴파일해줘"
+  - "PyTorch DataLoader를 Keras model.fit에 직접 넘기는 방법 알려줘"
+  - "Keras로 MNIST 이미지 분류 파이프라인 컨벤션에 맞게 작성해줘"
+  - "KERAS_BACKEND=torch 설정법과 주의점 알려줘"
+- **Negative Triggers (이 스킬이 활성화되지 않아야 함)**:
+  - "순수 PyTorch `nn.Module`과 학습 루프로 모델 작성해줘" ➔ 순수 PyTorch 안내
+  - "Jena 기후 데이터로 시계열 LSTM 예측 모델 짜줘" ➔ `timeseries` 스킬 사용
+  - "시스템의 conda 환경 전환해줘" ➔ `pydeep` 스킬 사용

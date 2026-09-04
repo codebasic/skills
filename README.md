@@ -47,7 +47,19 @@ mkdir -p .agents/skills
 ln -s /path/to/codebasic-skills/keras .agents/skills/keras
 ln -s /path/to/codebasic-skills/timeseries .agents/skills/timeseries
 
-# 또는 글로벌 스킬로 등록
+# 방법 A: ~/.gemini/config/skills.json에 ~/.agents/skills 경로 등록 (권장)
+# (이미 ~/.agents/skills에 심볼릭 링크되어 있는 경우 자동으로 모든 스킬 탐색)
+cat << 'EOF' > ~/.gemini/config/skills.json
+{
+  "entries": [
+    {
+      "path": "~/.agents/skills"
+    }
+  ]
+}
+EOF
+
+# 방법 B: 개별 스킬을 직접 Antigravity 글로벌 스킬로 링크
 mkdir -p ~/.gemini/config/skills
 ln -s "$(pwd)/keras" ~/.gemini/config/skills/keras
 ```

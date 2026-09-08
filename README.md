@@ -3,6 +3,9 @@
 딥러닝 및 시계열 분석 실무를 위한 고품질 에이전트 스킬(Agent Skills) 모음 저장소입니다.  
 Anthropic의 [Agent Skills 오픈 규격](https://agentskills.io) 및 Claude Code, Google Antigravity 프레임워크와 완벽하게 호환됩니다.
 
+> 💖 **Codebasic Skills는 무료·오픈소스입니다.** 유용하게 쓰고 계신다면 후원으로 개발을 응원해 주세요
+> → [**GitHub Sponsors로 후원하기**](https://github.com/sponsors/codebasic) (금액·주기 자유)
+
 ---
 
 ## 📦 스킬 카탈로그 (Skill Catalog)

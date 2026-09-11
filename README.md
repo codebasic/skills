@@ -1,6 +1,6 @@
 # Codebasic Skills (`codebasic-skills`)
 
-딥러닝 및 시계열 분석 실무를 위한 고품질 에이전트 스킬(Agent Skills) 모음 저장소입니다.  
+AI 모델 동향 조사, 딥러닝 및 시계열 분석 실무를 위한 고품질 에이전트 스킬(Agent Skills) 모음 저장소입니다.
 Anthropic의 [Agent Skills 오픈 규격](https://agentskills.io) 및 Claude Code, Google Antigravity 프레임워크와 완벽하게 호환됩니다.
 
 > 💖 **Codebasic Skills는 무료·오픈소스입니다.** 유용하게 쓰고 계신다면 후원으로 개발을 응원해 주세요
@@ -12,6 +12,7 @@ Anthropic의 [Agent Skills 오픈 규격](https://agentskills.io) 및 Claude Cod
 
 | 스킬명 | 설명 | 주요 기술 스택 | 링크 |
 | :--- | :--- | :--- | :--- |
+| **`ai-report`** | 신모델 출시·성능·가격·라이선스를 조사해 출처를 갖춘 한국어 비교 보고서 작성 | 웹 검색, Artificial Analysis, 공식 발표·가격 문서 | [ai-report/SKILL.md](./ai-report/SKILL.md) |
 | **`keras`** | Keras 3를 PyTorch 백엔드로 활용하는 워크스페이스 컨벤션, 모델 구축, DataLoader 연동 및 MNIST 실습 | Keras 3, PyTorch Backend, torchvision, DataLoader | [keras/SKILL.md](./keras/SKILL.md) |
 | **`pydeep`** | 실습 시스템 내 conda 가상환경(`base`, `pyml`, `pytorch`, `tensorflow`) 분기 및 환경 진단 가이드 | Conda, PyTorch (CUDA/MPS), TensorFlow | [pydeep/SKILL.md](./pydeep/SKILL.md) |
 | **`timeseries`** | 시계열 회귀·분류·이상탐지 전 과정(전처리, 윈도잉, 베이스라인, 1D CNN/TCN/트랜스포머, TimesFM/TTM/MOMENT 파운데이션 모델, LM 직렬화, XAI) | Pandas, Keras 3, TimesFM, TTM, MOMENT, Transformers | [timeseries/SKILL.md](./timeseries/SKILL.md) |
@@ -70,6 +71,8 @@ codebasic-skills/
 ├── .gitignore              # 파이썬 캐시, 체크포인트, OS 메타데이터 제외
 ├── scripts/
 │   └── register-skills.sh  # [자동화] 시스템 에이전트 자동 탐색 및 스킬 동기화 스크립트
+├── ai-report/
+│   └── SKILL.md            # AI 모델 동향 조사 및 비교 보고서
 ├── keras/
 │   ├── SKILL.md            # [핵심] Keras 3 워크스페이스 컨벤션 및 퀵 가이드
 │   ├── references/         # [참조] 설치, 세부 모델 구축, 훈련 가이드

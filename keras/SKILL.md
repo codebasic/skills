@@ -174,6 +174,8 @@ import keras
    - ⚠️ DataLoader 사용 시 `model.fit()`에 `batch_size`를 **절대 지정하지 않음**
 4. **평가 및 성능 비교**:
    - `model.evaluate(dataloader, return_dict=True)` 결과를 `pd.DataFrame`으로 취합
+   - 모델·epoch·하이퍼파라미터·임계값 선택에는 검증 집합을 사용하고, 시험 집합은 선택을 마친 뒤 최종 평가에 사용합니다. 시험 성능표를 본 뒤 후보를 선택하거나 설정을 바꾸면 그 표는 독립적인 최종 성능 추정이 아닙니다.
+   - `scripts/mnist_classification.py`는 미리 정한 MLP와 CNN을 고정 epoch로 훈련하여 시험 결과를 나란히 표시하는 예제입니다. 표를 모델 선택에 활용하려면 별도 검증 집합에서 비교·선택하고 고정한 모델을 시험 집합에서 평가하도록 확장합니다.
 
 완전한 실행 예제는 [scripts/mnist_classification.py](./scripts/mnist_classification.py)를 참조하세요.
 

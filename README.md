@@ -14,6 +14,9 @@ Anthropic의 [Agent Skills 오픈 규격](https://agentskills.io) 및 Claude Cod
 | :--- | :--- | :--- | :--- |
 | **`ai-report`** | 신모델 출시·성능·가격·라이선스를 조사해 출처를 갖춘 한국어 비교 보고서 작성 | 웹 검색, Artificial Analysis, 공식 발표·가격 문서 | [ai-report/SKILL.md](./ai-report/SKILL.md) |
 | **`keras`** | Keras 3를 PyTorch 백엔드로 활용하는 워크스페이스 컨벤션, 모델 구축, DataLoader 연동 및 MNIST 실습 | Keras 3, PyTorch Backend, torchvision, DataLoader | [keras/SKILL.md](./keras/SKILL.md) |
+| **`ml-data-preparation`** | 예측 시점·독립 단위에 맞춘 분할과 누수 없는 전처리 | 프레임워크 공통 | [ml-data-preparation/SKILL.md](./ml-data-preparation/SKILL.md) |
+| **`ml-model-evaluation`** | 지표·검증 설계·임계값 선택과 공정한 모델 비교 | 프레임워크 공통 | [ml-model-evaluation/SKILL.md](./ml-model-evaluation/SKILL.md) |
+| **`ml-training-diagnostics`** | 학습곡선·측정 조건·통제 실험에 근거한 학습 진단 | 프레임워크 공통 | [ml-training-diagnostics/SKILL.md](./ml-training-diagnostics/SKILL.md) |
 | **`pydeep`** | 실습 시스템 내 conda 가상환경(`base`, `pyml`, `pytorch`, `tensorflow`) 분기 및 환경 진단 가이드 | Conda, PyTorch (CUDA/MPS), TensorFlow | [pydeep/SKILL.md](./pydeep/SKILL.md) |
 | **`timeseries`** | 시계열 회귀·분류·이상탐지 전 과정(전처리, 윈도잉, 베이스라인, 1D CNN/TCN/트랜스포머, TimesFM/TTM/MOMENT 파운데이션 모델, LM 직렬화, XAI) | Pandas, Keras 3, TimesFM, TTM, MOMENT, Transformers | [timeseries/SKILL.md](./timeseries/SKILL.md) |
 
@@ -77,6 +80,12 @@ codebasic-skills/
 │   ├── SKILL.md            # [핵심] Keras 3 워크스페이스 컨벤션 및 퀵 가이드
 │   ├── references/         # [참조] 설치, 세부 모델 구축, 훈련 가이드
 │   └── scripts/            # [스크립트] MNIST 참조 구현 스크립트
+├── ml-data-preparation/
+│   └── SKILL.md            # 분할과 누수 없는 전처리
+├── ml-model-evaluation/
+│   └── SKILL.md            # 지표·검증·시험과 모델 비교
+├── ml-training-diagnostics/
+│   └── SKILL.md            # 학습곡선과 통제 실험 기반 진단
 ├── pydeep/
 │   ├── SKILL.md            # [핵심] Conda 환경 전환 및 진단 절차
 │   └── references/         # [참조] 환경별 세부 패키지 명세
@@ -90,5 +99,4 @@ codebasic-skills/
 
 ## 🧪 검증 및 평가 (Evals)
 
-각 스킬의 `SKILL.md` 하단에는 **Evals (발동 검증 질문)**이 포함되어 있습니다.  
-에이전트가 어떤 맥락에서 해당 스킬을 활성화해야 하는지(Positive Trigger)와 활성화하지 않아야 하는지(Negative Trigger)를 명확히 정의하여 의도치 않은 간섭 없이 높은 정확도로 실행됩니다.
+스킬의 적용 범위는 `description`과 본문의 작업 경계에서 확인합니다. 일부 스킬은 **Evals (발동 검증 질문)**에 적용·비적용 예시를 추가로 제공합니다. 실제 요청과 원자료로 적용 여부와 결과를 검증해야 하며, 발동 질문이나 형식 검사만으로 실행 정확성을 보장하지 않습니다.
